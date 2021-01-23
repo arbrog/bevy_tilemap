@@ -42,6 +42,63 @@ impl From<ErrorKind> for DimensionError {
 /// A dimension result which is of the type `Result<T, DimensionError>`.
 pub type DimensionResult<T> = Result<T, DimensionError>;
 
+/// A dimension kind.
+///
+/// Useful in those situations where you may have a different dimension
+/// depending on implementation.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Copy, Clone, Debug)]
+pub enum DimensionKind {
+    /// A wrapped 2nd dimension.
+    Dimension2(Dimension2),
+    /// A wrapped 3rd dimension.
+    Dimension3(Dimension3),
+}
+
+impl DimensionKind {
+    pub fn width(&self) -> u32 {
+        use DimensionKind::*;
+        match self {
+            Dimension2(d2) => d2.width,
+            Dimension3(d3) => d3.width,
+        }
+    }
+
+    pub fn height(&self) -> u32 {
+        use DimensionKind::*;
+        match self {
+            Dimension2(d2) => d2.height,
+            Dimension3(d3) => d3.height,
+        }
+    }
+
+    pub fn depth(&self) -> Option<u32> {
+        use DimensionKind::*;
+        match self {
+            Dimension2(_) => None,
+            Dimension3(d3) => Some(d3.depth),
+        }
+    }
+}
+
+impl From<Dimension2> for DimensionKind {
+    fn from(dimension: Dimension2) -> Self {
+        Self::Dimension2(dimension)
+    }
+}
+
+impl From<Dimension3> for DimensionKind {
+    fn from(dimension: Dimension3) -> Self {
+        Self::Dimension3(dimension)
+    }
+}
+
+impl From<DimensionKind> for Dimension2 {
+    fn from(kind: DimensionKind) -> Self {
+        Dimension2::new(kind.width(), kind.height())
+    }
+}
+
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 /// Dimensions of the 2nd kind.
